@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		127D7E7D1CC6BE7700A88878 /* ListInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 127D7E7C1CC6BE7700A88878 /* ListInfo.m */; };
+		127D7E821CC6C4E200A88878 /* UIFont+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = 127D7E811CC6C4E200A88878 /* UIFont+Resize.m */; };
 		AA9A4B81166FE7A80006F4EE /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA9A4B80166FE7A80006F4EE /* UIKit.framework */; };
 		AA9A4B83166FE7A80006F4EE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA9A4B82166FE7A80006F4EE /* Foundation.framework */; };
 		AA9A4B85166FE7A80006F4EE /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA9A4B84166FE7A80006F4EE /* CoreGraphics.framework */; };
@@ -27,6 +28,8 @@
 /* Begin PBXFileReference section */
 		127D7E7B1CC6BE7700A88878 /* ListInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListInfo.h; path = ListInfo/ListInfo.h; sourceTree = "<group>"; };
 		127D7E7C1CC6BE7700A88878 /* ListInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ListInfo.m; path = ListInfo/ListInfo.m; sourceTree = "<group>"; };
+		127D7E801CC6C4E200A88878 /* UIFont+Resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIFont+Resize.h"; path = "UIFont+Resize/UIFont+Resize.h"; sourceTree = "<group>"; };
+		127D7E811CC6C4E200A88878 /* UIFont+Resize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIFont+Resize.m"; path = "UIFont+Resize/UIFont+Resize.m"; sourceTree = "<group>"; };
 		AA9A4B7C166FE7A80006F4EE /* HTMLToAttributedString.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HTMLToAttributedString.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA9A4B80166FE7A80006F4EE /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		AA9A4B82166FE7A80006F4EE /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -71,6 +74,15 @@
 				127D7E7C1CC6BE7700A88878 /* ListInfo.m */,
 			);
 			name = ListInfo;
+			sourceTree = "<group>";
+		};
+		127D7E7F1CC6C4B500A88878 /* UIFont+Resize */ = {
+			isa = PBXGroup;
+			children = (
+				127D7E801CC6C4E200A88878 /* UIFont+Resize.h */,
+				127D7E811CC6C4E200A88878 /* UIFont+Resize.m */,
+			);
+			name = "UIFont+Resize";
 			sourceTree = "<group>";
 		};
 		AA9A4B71166FE7A80006F4EE = {
@@ -133,6 +145,7 @@
 		AAA378A516701A280092D30F /* NSAttributedString+DDHTML */ = {
 			isa = PBXGroup;
 			children = (
+				127D7E7F1CC6C4B500A88878 /* UIFont+Resize */,
 				127D7E7E1CC6BE7900A88878 /* ListInfo */,
 				AAA378A616701A280092D30F /* NSAttributedString+DDHTML.h */,
 				AAA378A716701A280092D30F /* NSAttributedString+DDHTML.m */,
@@ -209,6 +222,7 @@
 			files = (
 				AA9A4B8D166FE7A80006F4EE /* main.m in Sources */,
 				AA9A4B91166FE7A80006F4EE /* AppDelegate.m in Sources */,
+				127D7E821CC6C4E200A88878 /* UIFont+Resize.m in Sources */,
 				AA9A4B9D166FE7A80006F4EE /* ViewController.m in Sources */,
 				127D7E7D1CC6BE7700A88878 /* ListInfo.m in Sources */,
 				AAA378A816701A280092D30F /* NSAttributedString+DDHTML.m in Sources */,

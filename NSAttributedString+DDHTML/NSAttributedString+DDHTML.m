@@ -30,6 +30,7 @@
 
 #import "NSAttributedString+DDHTML.h"
 #import "ListInfo.h"
+#import "UIFont+Resize.h"
 #include <libxml/HTMLparser.h>
 
 @implementation NSAttributedString (DDHTML)
@@ -385,6 +386,13 @@
                 [nodeAttributedString insertAttributedString:attributedOrderedListPrefix atIndex:0];
                 parentNodeListInfo.orderedIndex++;
             }
+        } else if (strncmp("sup", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
+            [nodeAttributedString addAttribute:NSBaselineOffsetAttributeName value:@(normalFont.pointSize/2) range:nodeAttributedStringRange];
+            [nodeAttributedString addAttribute:NSFontAttributeName value:[normalFont halfSizeFont] range:nodeAttributedStringRange];
+            
+        } else if (strncmp("sub", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
+            [nodeAttributedString addAttribute:NSBaselineOffsetAttributeName value:@(-normalFont.pointSize/4) range:nodeAttributedStringRange];
+            [nodeAttributedString addAttribute:NSFontAttributeName value:[normalFont halfSizeFont] range:nodeAttributedStringRange];
         }
     }
     
