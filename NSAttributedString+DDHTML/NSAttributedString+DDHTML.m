@@ -88,8 +88,6 @@
 
 + (ListType)getListTypeFromNode:(xmlNodePtr)xmlNode {
     if (xmlNode->type == XML_ELEMENT_NODE) {
-        NSString *dataString = [NSString stringWithUTF8String:xmlNode->name];
-        NSLog(@"%@", dataString);
         if (strncmp("ul", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             return ListTypeUnordered;
         } else if (strncmp("ol", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
