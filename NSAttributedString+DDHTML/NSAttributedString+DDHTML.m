@@ -29,6 +29,7 @@
 //
 
 #import "NSAttributedString+DDHTML.h"
+#import "ListInfo.h"
 #include <libxml/HTMLparser.h>
 
 @implementation NSAttributedString (DDHTML)
@@ -73,7 +74,7 @@
     
     xmlNodePtr currentNode = document->children;
     while (currentNode != NULL) {
-        NSAttributedString *childString = [self attributedStringFromNode:currentNode normalFont:normalFont boldFont:boldFont italicFont:italicFont imageMap:imageMap];
+        NSAttributedString *childString = [self attributedStringFromNode:currentNode normalFont:normalFont boldFont:boldFont italicFont:italicFont imageMap:imageMap parentNodeListType:[self getListInfoFromNode:currentNode]];
         [finalAttributedString appendAttributedString:childString];
         
         currentNode = currentNode->next;
@@ -84,7 +85,21 @@
     return finalAttributedString;
 }
 
-+ (NSAttributedString *)attributedStringFromNode:(xmlNodePtr)xmlNode normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont imageMap:(NSDictionary<NSString *, UIImage *> *)imageMap
+
++ (ListType)getListTypeFromNode:(xmlNodePtr)xmlNode {
+    if (xmlNode->type == XML_ELEMENT_NODE) {
+        NSString *dataString = [NSString stringWithUTF8String:xmlNode->name];
+        NSLog(@"%@", dataString);
+        if (strncmp("ul", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
+            return ListTypeUnordered;
+        } else if (strncmp("ol", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
+            return ListTypeOrdered;
+        }
+    }
+    return ListTypeNone;
+}
+
++ (NSAttributedString *)attributedStringFromNode:(xmlNodePtr)xmlNode normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont imageMap:(NSDictionary<NSString *, UIImage *> *)imageMap parentNodeListType:(ListInfo *)parentNodeListInfo
 {
     NSMutableAttributedString *nodeAttributedString = [[NSMutableAttributedString alloc] init];
     
@@ -93,10 +108,12 @@
         [nodeAttributedString appendAttributedString:normalAttributedString];
     }
     
+    ListInfo *currentNodeListInfo = [self getListInfoFromNode:xmlNode];
+    
     // Handle children
     xmlNodePtr currentNode = xmlNode->children;
     while (currentNode != NULL) {
-        NSAttributedString *childString = [self attributedStringFromNode:currentNode normalFont:normalFont boldFont:boldFont italicFont:italicFont imageMap:imageMap];
+        NSAttributedString *childString = [self attributedStringFromNode:currentNode normalFont:normalFont boldFont:boldFont italicFont:italicFont imageMap:imageMap parentNodeListType:currentNodeListInfo];
         [nodeAttributedString appendAttributedString:childString];
         
         currentNode = currentNode->next;
@@ -133,7 +150,8 @@
         }
         
         // Italic Tag
-        else if (strncmp("i", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
+        else if (strncmp("i", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0 ||
+                 strncmp("em", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             if (italicFont) {
                 [nodeAttributedString addAttribute:NSFontAttributeName value:italicFont range:nodeAttributedStringRange];
             }
@@ -351,6 +369,25 @@
                 }
             #endif
         }
+        
+        // list elements
+        else if (strncmp("li", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
+            
+            if (parentNodeListInfo.listType == ListTypeUnordered) {
+                NSMutableAttributedString *attributedUnorderedListPrefix = [[NSMutableAttributedString alloc] initWithString:@"\u2022\u00A0"];
+                if (boldFont) {
+                    [attributedUnorderedListPrefix addAttribute:NSFontAttributeName value:boldFont range:NSMakeRange(0, attributedUnorderedListPrefix.length)];
+                }
+                [nodeAttributedString insertAttributedString:attributedUnorderedListPrefix atIndex:0];
+                
+            } else if (parentNodeListInfo.listType == ListTypeOrdered) {
+                NSString *orderedListPrefix = [NSString stringWithFormat:@"%i.\u00A0", parentNodeListInfo.orderedIndex];
+                NSMutableAttributedString *attributedOrderedListPrefix = [[NSMutableAttributedString alloc] initWithString:orderedListPrefix];
+                [attributedOrderedListPrefix addAttribute:NSFontAttributeName value:normalFont range:NSMakeRange(0, attributedOrderedListPrefix.length)];
+                [nodeAttributedString insertAttributedString:attributedOrderedListPrefix atIndex:0];
+                parentNodeListInfo.orderedIndex++;
+            }
+        }
     }
     
     return nodeAttributedString;
@@ -374,6 +411,11 @@
     NSUInteger hexValue = strtoul([hexString cStringUsingEncoding:NSUTF8StringEncoding], &p, 16);
 
     return [UIColor colorWithRed:((hexValue & 0xff0000) >> 16) / 255.0 green:((hexValue & 0xff00) >> 8) / 255.0 blue:(hexValue & 0xff) / 255.0 alpha:1.0];
+}
+
++ (ListInfo *)getListInfoFromNode:(xmlNodePtr)xmlNode {
+    ListInfo *listInfo = [[ListInfo alloc] initWithListType:[self getListTypeFromNode:xmlNode]];
+    return listInfo;
 }
 
 @end
