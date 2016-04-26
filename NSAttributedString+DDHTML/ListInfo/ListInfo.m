@@ -14,7 +14,7 @@
     self = [super init];
     if (self) {
         _listType = type;
-        _orderedIndex = 0;
+        _orderedIndex = 1;
     }
     return self;
 }
