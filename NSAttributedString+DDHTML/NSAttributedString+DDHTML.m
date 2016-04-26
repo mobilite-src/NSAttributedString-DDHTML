@@ -52,6 +52,7 @@
                                  boldFont:boldFont
                                italicFont:italicFont];
 }
+
 + (NSAttributedString *)attributedStringFromHTML:(NSString *)htmlString normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont
 {
     return [self attributedStringFromHTML:htmlString
@@ -61,7 +62,42 @@
                                  imageMap:@{}];
 }
 
++ (NSAttributedString *)attributedStringFromHTML:(NSString *)htmlString normalFont:(UIFont *)normalFont fontColor:(UIColor*)fontColor customLinkAttributes:(NSDictionary<NSString *, id> *)customLinkAttributes
+{
+    UIFont *preferredBodyFont = [UIFont preferredFontForTextStyle:UIFontTextStyleBody];
+    
+    return [self attributedStringFromHTML:htmlString
+                               normalFont:normalFont
+                                 boldFont:[UIFont boldSystemFontOfSize:preferredBodyFont.pointSize]
+                               italicFont:[UIFont italicSystemFontOfSize:preferredBodyFont.pointSize]
+                                fontColor:fontColor
+                                 imageMap:@{}
+                     customLinkAttributes:customLinkAttributes];
+}
+
++ (NSAttributedString *)attributedStringFromHTML:(NSString *)htmlString normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont fontColor:(UIColor*)fontColor customLinkAttributes:(NSDictionary<NSString *, id> *)customLinkAttributes
+{
+    return [self attributedStringFromHTML:htmlString
+                               normalFont:normalFont
+                                 boldFont:boldFont
+                               italicFont:italicFont
+                                fontColor:fontColor
+                                 imageMap:@{}
+                     customLinkAttributes:customLinkAttributes];
+}
+
 + (NSAttributedString *)attributedStringFromHTML:(NSString *)htmlString normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont imageMap:(NSDictionary<NSString *, UIImage *> *)imageMap
+{
+    return [self attributedStringFromHTML:htmlString
+                               normalFont:normalFont
+                                 boldFont:boldFont
+                               italicFont:italicFont
+                                fontColor:[UIColor blackColor]
+                                 imageMap:@{}
+                     customLinkAttributes:@{}];
+}
+
++ (NSAttributedString *)attributedStringFromHTML:(NSString *)htmlString normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont fontColor:(UIColor*)fontColor imageMap:(NSDictionary<NSString *, UIImage *> *)imageMap customLinkAttributes:(NSDictionary<NSString *, id> *)customLinkAttributes
 {
     // Parse HTML string as XML document using UTF-8 encoding
     NSData *documentData = [htmlString dataUsingEncoding:NSUTF8StringEncoding];
@@ -75,7 +111,7 @@
     
     xmlNodePtr currentNode = document->children;
     while (currentNode != NULL) {
-        NSAttributedString *childString = [self attributedStringFromNode:currentNode normalFont:normalFont boldFont:boldFont italicFont:italicFont imageMap:imageMap parentNodeListType:[self getListInfoFromNode:currentNode]];
+        NSAttributedString *childString = [self attributedStringFromNode:currentNode normalFont:normalFont boldFont:boldFont italicFont:italicFont fontColor:fontColor imageMap:imageMap parentNodeListType:[self getListInfoFromNode:currentNode] customLinkAttributes:customLinkAttributes];
         [finalAttributedString appendAttributedString:childString];
         
         currentNode = currentNode->next;
@@ -98,7 +134,7 @@
     return ListTypeNone;
 }
 
-+ (NSAttributedString *)attributedStringFromNode:(xmlNodePtr)xmlNode normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont imageMap:(NSDictionary<NSString *, UIImage *> *)imageMap parentNodeListType:(ListInfo *)parentNodeListInfo
++ (NSAttributedString *)attributedStringFromNode:(xmlNodePtr)xmlNode normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont fontColor:(UIColor*)fontColor imageMap:(NSDictionary<NSString *, UIImage *> *)imageMap parentNodeListType:(ListInfo *)parentNodeListInfo customLinkAttributes:(NSDictionary<NSString *, id> *)customLinkAttributes
 {
     NSMutableAttributedString *nodeAttributedString = [[NSMutableAttributedString alloc] init];
     
@@ -112,7 +148,7 @@
     // Handle children
     xmlNodePtr currentNode = xmlNode->children;
     while (currentNode != NULL) {
-        NSAttributedString *childString = [self attributedStringFromNode:currentNode normalFont:normalFont boldFont:boldFont italicFont:italicFont imageMap:imageMap parentNodeListType:currentNodeListInfo];
+        NSAttributedString *childString = [self attributedStringFromNode:currentNode normalFont:normalFont boldFont:boldFont italicFont:italicFont fontColor:fontColor imageMap:imageMap parentNodeListType:currentNodeListInfo customLinkAttributes:customLinkAttributes];
         [nodeAttributedString appendAttributedString:childString];
         
         currentNode = currentNode->next;
@@ -120,6 +156,7 @@
     
     if (xmlNode->type == XML_ELEMENT_NODE) {
         
+        UIColor *foregroundColor = fontColor;
         NSRange nodeAttributedStringRange = NSMakeRange(0, nodeAttributedString.length);
         
         // Build dictionary to store attributes
@@ -211,7 +248,6 @@
         else if (strncmp("font", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             NSString *fontName = nil;
             NSNumber *fontSize = nil;
-            UIColor *foregroundColor = nil;
             UIColor *backgroundColor = nil;
             
             if (attributeDictionary[@"face"]) {
@@ -236,10 +272,7 @@
             else if (fontName != nil && fontSize != nil) {
                 [nodeAttributedString addAttribute:NSFontAttributeName value:[self fontOrSystemFontForName:fontName size:fontSize.floatValue] range:nodeAttributedStringRange];
             }
-    
-            if (foregroundColor) {
-                [nodeAttributedString addAttribute:NSForegroundColorAttributeName value:foregroundColor range:nodeAttributedStringRange];
-            }
+
             if (backgroundColor) {
                 [nodeAttributedString addAttribute:NSBackgroundColorAttributeName value:backgroundColor range:nodeAttributedStringRange];
             }
@@ -334,6 +367,14 @@
             {
                 NSString *title = [NSString stringWithCString:(const char *)value encoding:NSUTF8StringEncoding];
                 NSString *link = attributeDictionary[@"href"];
+                
+                for (NSString *key in customLinkAttributes.allKeys) {
+                    if ([key isEqualToString:NSLinkAttributeName]) {
+                        [nodeAttributedString addAttribute:customLinkAttributes[key] value:[NSURL URLWithString:link] range:NSMakeRange(0, title.length)];
+                    } else {
+                        [nodeAttributedString addAttribute:key value:customLinkAttributes[key] range:NSMakeRange(0, title.length)];
+                    }
+                }
                 [nodeAttributedString addAttribute:NSLinkAttributeName value:link range:NSMakeRange(0, title.length)];
             }
         }
@@ -393,6 +434,33 @@
         } else if (strncmp("sub", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             [nodeAttributedString addAttribute:NSBaselineOffsetAttributeName value:@(-normalFont.pointSize/4) range:nodeAttributedStringRange];
             [nodeAttributedString addAttribute:NSFontAttributeName value:[normalFont halfSizeFont] range:nodeAttributedStringRange];
+        }
+        
+        if (foregroundColor) {
+            // Apply foreground color to all the string by default
+            [nodeAttributedString addAttribute:NSForegroundColorAttributeName value:foregroundColor range:nodeAttributedStringRange];
+        }
+        
+        // If some custom link attributes are specified, assign the link color according to
+        if ([customLinkAttributes.allKeys containsObject:NSLinkAttributeName] &&
+            [customLinkAttributes.allKeys containsObject:NSForegroundColorAttributeName]) {
+            
+            NSMutableArray *ranges = [NSMutableArray new];
+            
+            [nodeAttributedString enumerateAttributesInRange:nodeAttributedStringRange options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired usingBlock:^(NSDictionary *attributes, NSRange range, BOOL *stop) {
+                    // Take note of all the ranges containing a link attribute
+                    if (attributes[customLinkAttributes[NSLinkAttributeName]] != nil) {
+                        [ranges addObject:[NSValue valueWithRange:range]];
+                    }
+                }
+             ];
+
+            // Assign the custom link color to the ranges
+            for (int i = 0; i < ranges.count; i++) {
+                NSRange range = [[ranges objectAtIndex:i] rangeValue];
+                [nodeAttributedString removeAttribute:NSForegroundColorAttributeName range:range];
+                [nodeAttributedString addAttribute:NSForegroundColorAttributeName value:customLinkAttributes[NSForegroundColorAttributeName] range:range];
+            }
         }
     }
     

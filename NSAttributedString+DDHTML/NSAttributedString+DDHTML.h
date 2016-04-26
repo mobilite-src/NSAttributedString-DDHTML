@@ -70,6 +70,32 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  *  Generates an attributed string from HTML.
  *
+ *  @param htmlString HTML String
+ *  @param normalFont Font to use for general text
+ *  @param fontColor Font color to use for general text, except for <a> tags
+ *  @param customLinkAttributes Attributes assigned to link tags, default is NSLinkAttributeName
+ *
+ *  @return Attributed string
+ */
++ (NSAttributedString *)attributedStringFromHTML:(NSString *)htmlString normalFont:(UIFont *)normalFont fontColor:(UIColor*)fontColor customLinkAttributes:(NSDictionary<NSString *, id> *)customLinkAttributes;
+
+/**
+ *  Generates an attributed string from HTML.
+ *
+ *  @param htmlString HTML String
+ *  @param normalFont Font to use for general text
+ *  @param boldFont   Font to use for <b> and <strong> tags
+ *  @param italicFont Font to use for <i> and <em> tags
+ *  @param fontColor Font color to use for general text, except for <a> tags
+ *  @param customLinkAttributes Attributes assigned to link tags, default is NSLinkAttributeName
+ *
+ *  @return Attributed string
+ */
++ (NSAttributedString *)attributedStringFromHTML:(NSString *)htmlString normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont fontColor:(UIColor*)fontColor customLinkAttributes:(NSDictionary<NSString *, id> *)customLinkAttributes;
+
+/**
+ *  Generates an attributed string from HTML.
+ *
  *  @param htmlString   HTML String
  *  @param normalFont   Font to use for general text
  *  @param boldFont     Font to use for <b> and <strong> tags
