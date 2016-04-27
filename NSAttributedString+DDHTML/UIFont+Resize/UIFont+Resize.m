@@ -16,4 +16,10 @@
     return [UIFont fontWithDescriptor:fontDescriptor size:self.pointSize/2];
 }
 
+- (UIFont *)changeSizeFont:(int)fontSizeStep
+{
+    UIFontDescriptor *fontDescriptor = [self fontDescriptor];
+    return [UIFont fontWithDescriptor:fontDescriptor size:self.pointSize + fontSizeStep];
+}
+
 @end

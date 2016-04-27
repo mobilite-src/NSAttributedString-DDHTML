@@ -384,6 +384,18 @@
             [nodeAttributedString appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n"]];
         }
         
+        else if (strncmp("h2", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
+            [nodeAttributedString addAttribute:NSFontAttributeName value:boldFont range:nodeAttributedStringRange];
+        }
+        
+        else if (strncmp("h3", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
+            [nodeAttributedString addAttribute:NSFontAttributeName value:[boldFont changeSizeFont:-2] range:nodeAttributedStringRange];
+        }
+        
+        else if (strncmp("h4", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
+            [nodeAttributedString addAttribute:NSFontAttributeName value:[boldFont changeSizeFont:-4] range:nodeAttributedStringRange];
+        }
+        
         // Images
         else if (strncmp("img", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             #if __has_include(<UIKit/NSTextAttachment.h>)

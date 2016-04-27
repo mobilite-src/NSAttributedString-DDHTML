@@ -10,5 +10,5 @@
 
 @interface UIFont (Resize)
 - (UIFont *)halfSizeFont;
-
+- (UIFont *)changeSizeFont:(int)fontSizeStep;
 @end
