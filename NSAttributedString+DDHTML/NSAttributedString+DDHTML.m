@@ -365,17 +365,16 @@
             xmlChar *value = xmlNodeListGetString(xmlNode->doc, xmlNode->xmlChildrenNode, 1);
             if (value)
             {
-                NSString *title = [NSString stringWithCString:(const char *)value encoding:NSUTF8StringEncoding];
                 NSString *link = attributeDictionary[@"href"];
                 
                 for (NSString *key in customLinkAttributes.allKeys) {
                     if ([key isEqualToString:NSLinkAttributeName]) {
-                        [nodeAttributedString addAttribute:customLinkAttributes[key] value:[NSURL URLWithString:link] range:NSMakeRange(0, title.length)];
+                        [nodeAttributedString addAttribute:customLinkAttributes[key] value:[NSURL URLWithString:link] range:NSMakeRange(0, nodeAttributedString.length)];
                     } else {
-                        [nodeAttributedString addAttribute:key value:customLinkAttributes[key] range:NSMakeRange(0, title.length)];
+                        [nodeAttributedString addAttribute:key value:customLinkAttributes[key] range:NSMakeRange(0, nodeAttributedString.length)];
                     }
                 }
-                [nodeAttributedString addAttribute:NSLinkAttributeName value:link range:NSMakeRange(0, title.length)];
+                [nodeAttributedString addAttribute:NSLinkAttributeName value:link range:NSMakeRange(0, nodeAttributedString.length)];
             }
         }
         
