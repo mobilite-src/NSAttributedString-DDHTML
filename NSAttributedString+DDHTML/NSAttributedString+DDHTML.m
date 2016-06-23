@@ -426,19 +426,27 @@
         else if (strncmp("li", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             
             if (parentNodeListInfo.listType == ListTypeUnordered) {
-                NSMutableAttributedString *attributedUnorderedListPrefix = [[NSMutableAttributedString alloc] initWithString:@"\u2022\u00A0"];
+                NSMutableAttributedString *attributedUnorderedListPrefix = [[NSMutableAttributedString alloc] initWithString:@"\u2022\u00A0\u00A0"];
                 if (boldFont) {
                     [attributedUnorderedListPrefix addAttribute:NSFontAttributeName value:boldFont range:NSMakeRange(0, attributedUnorderedListPrefix.length)];
                 }
                 [nodeAttributedString insertAttributedString:attributedUnorderedListPrefix atIndex:0];
                 
             } else if (parentNodeListInfo.listType == ListTypeOrdered) {
-                NSString *orderedListPrefix = [NSString stringWithFormat:@"%i.\u00A0", parentNodeListInfo.orderedIndex];
+                NSString *orderedListPrefix = [NSString stringWithFormat:@"%i.\u00A0\u00A0", parentNodeListInfo.orderedIndex];
                 NSMutableAttributedString *attributedOrderedListPrefix = [[NSMutableAttributedString alloc] initWithString:orderedListPrefix];
                 [attributedOrderedListPrefix addAttribute:NSFontAttributeName value:normalFont range:NSMakeRange(0, attributedOrderedListPrefix.length)];
                 [nodeAttributedString insertAttributedString:attributedOrderedListPrefix atIndex:0];
                 parentNodeListInfo.orderedIndex++;
             }
+            
+            // Adjust paragraph style of the bullet list lines so that the text is vertically aligned with the first line
+            NSMutableParagraphStyle *paragraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+            paragraphStyle.headIndent = normalFont.pointSize;
+            paragraphStyle.paragraphSpacing = normalFont.pointSize;
+            
+            [nodeAttributedString addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, nodeAttributedString.length)];
+            
         } else if (strncmp("sup", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             [nodeAttributedString addAttribute:NSBaselineOffsetAttributeName value:@(normalFont.pointSize/2) range:nodeAttributedStringRange];
             [nodeAttributedString addAttribute:NSFontAttributeName value:[normalFont halfSizeFont] range:nodeAttributedStringRange];
