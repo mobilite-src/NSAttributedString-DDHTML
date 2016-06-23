@@ -426,14 +426,14 @@
         else if (strncmp("li", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             
             if (parentNodeListInfo.listType == ListTypeUnordered) {
-                NSMutableAttributedString *attributedUnorderedListPrefix = [[NSMutableAttributedString alloc] initWithString:@"\u2022\u00A0\u00A0"];
+                NSMutableAttributedString *attributedUnorderedListPrefix = [[NSMutableAttributedString alloc] initWithString:@"\u2022\t"];
                 if (boldFont) {
                     [attributedUnorderedListPrefix addAttribute:NSFontAttributeName value:boldFont range:NSMakeRange(0, attributedUnorderedListPrefix.length)];
                 }
                 [nodeAttributedString insertAttributedString:attributedUnorderedListPrefix atIndex:0];
                 
             } else if (parentNodeListInfo.listType == ListTypeOrdered) {
-                NSString *orderedListPrefix = [NSString stringWithFormat:@"%i.\u00A0\u00A0", parentNodeListInfo.orderedIndex];
+                NSString *orderedListPrefix = [NSString stringWithFormat:@"%i.\t", parentNodeListInfo.orderedIndex];
                 NSMutableAttributedString *attributedOrderedListPrefix = [[NSMutableAttributedString alloc] initWithString:orderedListPrefix];
                 [attributedOrderedListPrefix addAttribute:NSFontAttributeName value:normalFont range:NSMakeRange(0, attributedOrderedListPrefix.length)];
                 [nodeAttributedString insertAttributedString:attributedOrderedListPrefix atIndex:0];
@@ -442,7 +442,11 @@
             
             // Adjust paragraph style of the bullet list lines so that the text is vertically aligned with the first line
             NSMutableParagraphStyle *paragraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
-            paragraphStyle.headIndent = normalFont.pointSize;
+            
+            NSString *stringWithGlyph = [NSString stringWithUTF8String:"\t"];
+            CGSize glyphSize = [stringWithGlyph sizeWithAttributes:[NSDictionary dictionaryWithObject:normalFont forKey:NSFontAttributeName]];
+            
+            paragraphStyle.headIndent = glyphSize.width;
             paragraphStyle.paragraphSpacing = normalFont.pointSize;
             
             [nodeAttributedString addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, nodeAttributedString.length)];
