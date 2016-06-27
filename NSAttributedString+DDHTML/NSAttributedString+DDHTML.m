@@ -134,6 +134,22 @@
     return ListTypeNone;
 }
 
++ (int)getListElementCountFromListNode:(xmlNodePtr)xmlNode {
+    uint listElementCount = 0;
+    if (xmlNode->children) {
+        xmlNodePtr currentChild = xmlNode->children;
+        while (currentChild) {
+            if (xmlNode->type == XML_ELEMENT_NODE) {
+                if (strncmp("li", (const char *)currentChild->name, strlen((const char *)currentChild->name)) == 0) {
+                    listElementCount++;
+                }
+            }
+            currentChild = currentChild->next;
+        }
+    }
+    return listElementCount;
+}
+
 + (NSAttributedString *)attributedStringFromNode:(xmlNodePtr)xmlNode normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont fontColor:(UIColor*)fontColor imageMap:(NSDictionary<NSString *, UIImage *> *)imageMap parentNodeListType:(ListInfo *)parentNodeListInfo customLinkAttributes:(NSDictionary<NSString *, id> *)customLinkAttributes
 {
     NSMutableAttributedString *nodeAttributedString = [[NSMutableAttributedString alloc] init];
@@ -434,7 +450,7 @@
                     [attributedUnorderedListPrefix addAttribute:NSFontAttributeName value:boldFont range:NSMakeRange(0, attributedUnorderedListPrefix.length)];
                 }
                 [nodeAttributedString insertAttributedString:attributedUnorderedListPrefix atIndex:0];
-                
+                parentNodeListInfo.orderedIndex++;
             } else if (parentNodeListInfo.listType == ListTypeOrdered) {
                 NSString *orderedListPrefix = [NSString stringWithFormat:@"%i.\t", parentNodeListInfo.orderedIndex];
                 NSMutableAttributedString *attributedOrderedListPrefix = [[NSMutableAttributedString alloc] initWithString:orderedListPrefix];
@@ -450,8 +466,10 @@
             CGSize glyphSize = [stringWithGlyph sizeWithAttributes:[NSDictionary dictionaryWithObject:normalFont forKey:NSFontAttributeName]];
             
             paragraphStyle.headIndent = glyphSize.width;
-            paragraphStyle.paragraphSpacing = normalFont.pointSize;
             
+            if (parentNodeListInfo.orderedIndex <= parentNodeListInfo.elementCount) {
+                paragraphStyle.paragraphSpacing = normalFont.pointSize;
+            }
             [nodeAttributedString addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, nodeAttributedString.length)];
             
         } else if (strncmp("sup", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
@@ -515,8 +533,14 @@
 }
 
 + (ListInfo *)getListInfoFromNode:(xmlNodePtr)xmlNode {
-    ListInfo *listInfo = [[ListInfo alloc] initWithListType:[self getListTypeFromNode:xmlNode]];
-    return listInfo;
+    
+    ListType listType = [self getListTypeFromNode:xmlNode];
+
+    uint listElementCount = 0;
+    if (listType != ListTypeNone) {
+        listElementCount = [self getListElementCountFromListNode:xmlNode];
+    }
+    return [[ListInfo alloc] initWithListType:listType withListElementCount:listElementCount];
 }
 
 + (BOOL)applyBoldItalicToAttributedString:(NSMutableAttributedString *)attributedString ifMatchFontIsPresent:(UIFont *)matchFont forRange:(NSRange)range {

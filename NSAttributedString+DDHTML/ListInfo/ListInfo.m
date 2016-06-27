@@ -10,11 +10,12 @@
 
 @implementation ListInfo
 
-- (id)initWithListType:(ListType)type {
+- (id)initWithListType:(ListType)type withListElementCount:(uint)elementCount {
     self = [super init];
     if (self) {
         _listType = type;
         _orderedIndex = 1;
+        _elementCount = elementCount;
     }
     return self;
 }
