@@ -181,7 +181,9 @@
         if (strncmp("b", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0 ||
             strncmp("strong", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             if (boldFont) {
-                [nodeAttributedString addAttribute:NSFontAttributeName value:boldFont range:nodeAttributedStringRange];
+                if (![NSAttributedString applyBoldItalicToAttributedString:nodeAttributedString ifMatchFontIsPresent:italicFont forRange:nodeAttributedStringRange]) {
+                    [nodeAttributedString addAttribute:NSFontAttributeName value:boldFont range:nodeAttributedStringRange];
+                }
             }
         }
         
@@ -189,7 +191,9 @@
         else if (strncmp("i", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0 ||
                  strncmp("em", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             if (italicFont) {
-                [nodeAttributedString addAttribute:NSFontAttributeName value:italicFont range:nodeAttributedStringRange];
+                if (![NSAttributedString applyBoldItalicToAttributedString:nodeAttributedString ifMatchFontIsPresent:boldFont forRange:nodeAttributedStringRange]) {
+                    [nodeAttributedString addAttribute:NSFontAttributeName value:italicFont range:nodeAttributedStringRange];
+                }
             }
         }
         
@@ -513,6 +517,25 @@
 + (ListInfo *)getListInfoFromNode:(xmlNodePtr)xmlNode {
     ListInfo *listInfo = [[ListInfo alloc] initWithListType:[self getListTypeFromNode:xmlNode]];
     return listInfo;
+}
+
++ (BOOL)applyBoldItalicToAttributedString:(NSMutableAttributedString *)attributedString ifMatchFontIsPresent:(UIFont *)matchFont forRange:(NSRange)range {
+    __block BOOL wasChanged = NO;
+    
+    [attributedString enumerateAttribute:NSFontAttributeName inRange:range options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired usingBlock:^(id value, NSRange range, BOOL *stop) {
+        if (value) {
+            UIFont *currentFont = (UIFont *)value;
+            
+            if (currentFont == matchFont) {
+                stop = YES;
+                wasChanged = YES;
+                UIFontDescriptor *fontD = [currentFont.fontDescriptor fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitBold | UIFontDescriptorTraitItalic];
+                [attributedString addAttribute:NSFontAttributeName value:[UIFont fontWithDescriptor:fontD size:currentFont.pointSize] range:range];
+            }
+        }
+    }];
+    
+    return wasChanged;
 }
 
 @end
