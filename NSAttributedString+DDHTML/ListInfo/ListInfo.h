@@ -18,9 +18,10 @@ typedef NS_ENUM(NSInteger, ListType) {
 @interface ListInfo : NSObject {
 }
 
-- (id)initWithListType:(ListType)type;
+- (id)initWithListType:(ListType)type withListElementCount:(uint)elementCount;
 
 @property ListType listType;
 @property int orderedIndex;
+@property int elementCount;
 
 @end

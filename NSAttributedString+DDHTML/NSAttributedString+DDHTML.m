@@ -134,6 +134,22 @@
     return ListTypeNone;
 }
 
++ (int)getListElementCountFromListNode:(xmlNodePtr)xmlNode {
+    uint listElementCount = 0;
+    if (xmlNode->children) {
+        xmlNodePtr currentChild = xmlNode->children;
+        while (currentChild) {
+            if (xmlNode->type == XML_ELEMENT_NODE) {
+                if (strncmp("li", (const char *)currentChild->name, strlen((const char *)currentChild->name)) == 0) {
+                    listElementCount++;
+                }
+            }
+            currentChild = currentChild->next;
+        }
+    }
+    return listElementCount;
+}
+
 + (NSAttributedString *)attributedStringFromNode:(xmlNodePtr)xmlNode normalFont:(UIFont *)normalFont boldFont:(UIFont *)boldFont italicFont:(UIFont *)italicFont fontColor:(UIColor*)fontColor imageMap:(NSDictionary<NSString *, UIImage *> *)imageMap parentNodeListType:(ListInfo *)parentNodeListInfo customLinkAttributes:(NSDictionary<NSString *, id> *)customLinkAttributes
 {
     NSMutableAttributedString *nodeAttributedString = [[NSMutableAttributedString alloc] init];
@@ -369,17 +385,16 @@
             xmlChar *value = xmlNodeListGetString(xmlNode->doc, xmlNode->xmlChildrenNode, 1);
             if (value)
             {
-                NSString *title = [NSString stringWithCString:(const char *)value encoding:NSUTF8StringEncoding];
                 NSString *link = attributeDictionary[@"href"];
                 
                 for (NSString *key in customLinkAttributes.allKeys) {
                     if ([key isEqualToString:NSLinkAttributeName]) {
-                        [nodeAttributedString addAttribute:customLinkAttributes[key] value:[NSURL URLWithString:link] range:NSMakeRange(0, title.length)];
+                        [nodeAttributedString addAttribute:customLinkAttributes[key] value:[NSURL URLWithString:link] range:NSMakeRange(0, nodeAttributedString.length)];
                     } else {
-                        [nodeAttributedString addAttribute:key value:customLinkAttributes[key] range:NSMakeRange(0, title.length)];
+                        [nodeAttributedString addAttribute:key value:customLinkAttributes[key] range:NSMakeRange(0, nodeAttributedString.length)];
                     }
                 }
-                [nodeAttributedString addAttribute:NSLinkAttributeName value:link range:NSMakeRange(0, title.length)];
+                [nodeAttributedString addAttribute:NSLinkAttributeName value:link range:NSMakeRange(0, nodeAttributedString.length)];
             }
         }
         
@@ -430,19 +445,33 @@
         else if (strncmp("li", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             
             if (parentNodeListInfo.listType == ListTypeUnordered) {
-                NSMutableAttributedString *attributedUnorderedListPrefix = [[NSMutableAttributedString alloc] initWithString:@"\u2022\u00A0"];
+                NSMutableAttributedString *attributedUnorderedListPrefix = [[NSMutableAttributedString alloc] initWithString:@"\u2022\t"];
                 if (boldFont) {
                     [attributedUnorderedListPrefix addAttribute:NSFontAttributeName value:boldFont range:NSMakeRange(0, attributedUnorderedListPrefix.length)];
                 }
                 [nodeAttributedString insertAttributedString:attributedUnorderedListPrefix atIndex:0];
-                
+                parentNodeListInfo.orderedIndex++;
             } else if (parentNodeListInfo.listType == ListTypeOrdered) {
-                NSString *orderedListPrefix = [NSString stringWithFormat:@"%i.\u00A0", parentNodeListInfo.orderedIndex];
+                NSString *orderedListPrefix = [NSString stringWithFormat:@"%i.\t", parentNodeListInfo.orderedIndex];
                 NSMutableAttributedString *attributedOrderedListPrefix = [[NSMutableAttributedString alloc] initWithString:orderedListPrefix];
                 [attributedOrderedListPrefix addAttribute:NSFontAttributeName value:normalFont range:NSMakeRange(0, attributedOrderedListPrefix.length)];
                 [nodeAttributedString insertAttributedString:attributedOrderedListPrefix atIndex:0];
                 parentNodeListInfo.orderedIndex++;
             }
+            
+            // Adjust paragraph style of the bullet list lines so that the text is vertically aligned with the first line
+            NSMutableParagraphStyle *paragraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+            
+            NSString *stringWithGlyph = [NSString stringWithUTF8String:"\t"];
+            CGSize glyphSize = [stringWithGlyph sizeWithAttributes:[NSDictionary dictionaryWithObject:normalFont forKey:NSFontAttributeName]];
+            
+            paragraphStyle.headIndent = glyphSize.width;
+            
+            if (parentNodeListInfo.orderedIndex <= parentNodeListInfo.elementCount) {
+                paragraphStyle.paragraphSpacing = normalFont.pointSize;
+            }
+            [nodeAttributedString addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, nodeAttributedString.length)];
+            
         } else if (strncmp("sup", (const char *)xmlNode->name, strlen((const char *)xmlNode->name)) == 0) {
             [nodeAttributedString addAttribute:NSBaselineOffsetAttributeName value:@(normalFont.pointSize/2) range:nodeAttributedStringRange];
             [nodeAttributedString addAttribute:NSFontAttributeName value:[normalFont halfSizeFont] range:nodeAttributedStringRange];
@@ -504,8 +533,14 @@
 }
 
 + (ListInfo *)getListInfoFromNode:(xmlNodePtr)xmlNode {
-    ListInfo *listInfo = [[ListInfo alloc] initWithListType:[self getListTypeFromNode:xmlNode]];
-    return listInfo;
+    
+    ListType listType = [self getListTypeFromNode:xmlNode];
+
+    uint listElementCount = 0;
+    if (listType != ListTypeNone) {
+        listElementCount = [self getListElementCountFromListNode:xmlNode];
+    }
+    return [[ListInfo alloc] initWithListType:listType withListElementCount:listElementCount];
 }
 
 + (BOOL)applyBoldItalicToAttributedString:(NSMutableAttributedString *)attributedString ifMatchFontIsPresent:(UIFont *)matchFont forRange:(NSRange)range {
