@@ -287,7 +287,7 @@
                 [nodeAttributedString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:[fontSize doubleValue]] range:nodeAttributedStringRange];
             }
             else if (fontName != nil && fontSize == nil) {
-                [nodeAttributedString addAttribute:NSFontAttributeName value:[self fontOrSystemFontForName:fontName size:12.0] range:nodeAttributedStringRange];
+                [nodeAttributedString addAttribute:NSFontAttributeName value:[self fontOrSystemFontForName:fontName size:normalFont.pointSize] range:nodeAttributedStringRange];
             }
             else if (fontName != nil && fontSize != nil) {
                 [nodeAttributedString addAttribute:NSFontAttributeName value:[self fontOrSystemFontForName:fontName size:fontSize.floatValue] range:nodeAttributedStringRange];
@@ -482,8 +482,29 @@
         }
         
         if (foregroundColor) {
+            NSMutableArray *ranges = [NSMutableArray new];
+            NSMutableArray *colors = [NSMutableArray new];
+
+            [nodeAttributedString enumerateAttributesInRange:nodeAttributedStringRange options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired usingBlock:^(NSDictionary *attributes, NSRange range, BOOL *stop) {
+
+                if (attributes[NSForegroundColorAttributeName] != nil) {
+                    // Take note of all the ranges containing a foreground color attribute
+                    [ranges addObject:[NSValue valueWithRange:range]];
+                    [colors addObject:attributes[NSForegroundColorAttributeName]];
+                    }
+                }
+                ];
+            
             // Apply foreground color to all the string by default
             [nodeAttributedString addAttribute:NSForegroundColorAttributeName value:foregroundColor range:nodeAttributedStringRange];
+
+            
+            // Restore colors set by children nodes
+            for (int i = 0; i < ranges.count; i++) {
+                NSRange range = [[ranges objectAtIndex:i] rangeValue];
+                [nodeAttributedString removeAttribute:NSForegroundColorAttributeName range:range];
+                [nodeAttributedString addAttribute:NSForegroundColorAttributeName value:[colors objectAtIndex:i] range:range];
+            }
         }
         
         // If some custom link attributes are specified, assign the link color according to
