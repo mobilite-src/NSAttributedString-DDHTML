@@ -12,14 +12,22 @@
 
 - (UIFont *)halfSizeFont
 {
-    UIFontDescriptor *fontDescriptor = [self fontDescriptor];
-    return [UIFont fontWithDescriptor:fontDescriptor size:self.pointSize/2];
+    return [UIFont fontWithDescriptor:self.fontDescriptor size:self.pointSize/2];
 }
 
 - (UIFont *)changeSizeFont:(int)fontSizeStep
 {
-    UIFontDescriptor *fontDescriptor = [self fontDescriptor];
-    return [UIFont fontWithDescriptor:fontDescriptor size:self.pointSize + fontSizeStep];
+    return [UIFont fontWithDescriptor:self.fontDescriptor size:self.pointSize + fontSizeStep];
+}
+
+- (UIFont *)bold
+{
+    return [UIFont fontWithDescriptor:[self.fontDescriptor fontDescriptorWithSymbolicTraits: self.fontDescriptor.symbolicTraits | UIFontDescriptorTraitBold] size:self.pointSize];
+}
+
+- (UIFont *)italic
+{
+    return [UIFont fontWithDescriptor:[self.fontDescriptor fontDescriptorWithSymbolicTraits:self.fontDescriptor.symbolicTraits | UIFontDescriptorTraitItalic] size:self.pointSize];
 }
 
 @end

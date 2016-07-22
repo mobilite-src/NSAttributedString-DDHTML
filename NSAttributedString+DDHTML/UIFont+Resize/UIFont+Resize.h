@@ -11,4 +11,6 @@
 @interface UIFont (Resize)
 - (UIFont *)halfSizeFont;
 - (UIFont *)changeSizeFont:(int)fontSizeStep;
+- (UIFont *)bold;
+- (UIFont *)italic;
 @end
