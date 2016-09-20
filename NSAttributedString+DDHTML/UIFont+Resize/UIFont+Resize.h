@@ -8,9 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface UIFont (Resize)
 - (UIFont *)halfSizeFont;
 - (UIFont *)changeSizeFont:(int)fontSizeStep;
 - (UIFont *)bold;
 - (UIFont *)italic;
 @end
+
+NS_ASSUME_NONNULL_END
