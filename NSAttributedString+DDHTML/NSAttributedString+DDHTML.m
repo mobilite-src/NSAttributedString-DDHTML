@@ -528,12 +528,21 @@
 }
 
 + (void)applySymbolicTraits:(UIFontDescriptorSymbolicTraits)traits toAttributedString:(NSMutableAttributedString *)attributedString forRange:(NSRange)range {
-    
+
     [attributedString enumerateAttribute:NSFontAttributeName inRange:range options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired usingBlock:^(id value, NSRange range, BOOL *stop) {
         if (value) {
             UIFont *currentFont = (UIFont *)value;
-            UIFontDescriptor *fontD = [currentFont.fontDescriptor fontDescriptorWithSymbolicTraits:currentFont.fontDescriptor.symbolicTraits | traits];
-            [attributedString addAttribute:NSFontAttributeName value:[UIFont fontWithDescriptor:fontD size:currentFont.pointSize] range:range];
+            UIFont *newFont = nil;
+            if (traits == UIFontDescriptorTraitItalic) {
+                newFont = [UIFont fontWithName: [currentFont.fontName stringByAppendingString:@"Italic"] size:currentFont.pointSize];
+            }
+            if (newFont != nil) {
+                [attributedString addAttribute:NSFontAttributeName value:newFont range:range];
+            }
+            else {
+                UIFontDescriptor *fontD = [currentFont.fontDescriptor fontDescriptorWithSymbolicTraits:currentFont.fontDescriptor.symbolicTraits | traits];
+                [attributedString addAttribute:NSFontAttributeName value:[UIFont fontWithDescriptor:fontD size:currentFont.pointSize] range:range];
+            }
         }
     }];
 }
